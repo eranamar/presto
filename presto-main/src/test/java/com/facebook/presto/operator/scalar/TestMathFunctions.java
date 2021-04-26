@@ -1373,6 +1373,29 @@ public class TestMathFunctions
     }
 
     @Test
+    public void testBinomialTest()
+            throws Exception
+    {
+        assertFunction("round(binomial_test(15, 3, 0.1, 'GREATER_THAN'), 12)", DOUBLE, 0.184061069106);
+        assertFunction("binomial_test(15, 3, 0.1, 'GREATER_THAN', 0.05)", BOOLEAN, false);
+        assertFunction("binomial_test(15, 3, 0.1, 'GREATER_THAN', 0.50)", BOOLEAN, true);
+
+        assertFunction("round(binomial_test(15, 3, 0.1, 'TWO_SIDED'), 12)", DOUBLE, 0.184061069106);
+        assertFunction("round(binomial_test(15, 3, 0.1, 'LESS_THAN'), 12)", DOUBLE, 0.944444369992);
+
+        assertInvalidFunction(
+                "binomial_test(15, 3, 0.1, 'greater_than')",
+                "alternativeHypothesis must be one of {\"LESS_THAN\", \"TWO_SIDED\", \"GREATER_THAN\"}");
+
+        assertInvalidFunction("binomial_test(20, 3, -0.1, 'GREATER_THAN')", "probability must be in the interval [0, 1]");
+        assertInvalidFunction("binomial_test(20, 3, 1.1, 'GREATER_THAN')", "probability must be in the interval [0, 1]");
+
+        assertInvalidFunction("binomial_test(2, 3, 0.1, 'GREATER_THAN')", "numberOfSuccesses must be at most numberOfTrials");
+        assertInvalidFunction("binomial_test(-2, 3, 0.1, 'GREATER_THAN')", "numberOfTrials must be greater than 0");
+        assertInvalidFunction("binomial_test(20, -3, 0.1, 'GREATER_THAN')", "numberOfSuccesses must be greater than 0");
+    }
+
+    @Test
     public void testInverseChiSquaredCdf()
     {
         assertFunction("inverse_chi_squared_cdf(3, 0.0)", DOUBLE, 0.0);

@@ -33,6 +33,8 @@ import io.airlift.slice.Slice;
 import org.apache.commons.math3.distribution.BetaDistribution;
 import org.apache.commons.math3.distribution.ChiSquaredDistribution;
 import org.apache.commons.math3.special.Erf;
+import org.apache.commons.math3.stat.inference.AlternativeHypothesis;
+import org.apache.commons.math3.stat.inference.BinomialTest;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -214,6 +216,70 @@ public final class MathFunctions
     public static double atan2(@SqlType(StandardTypes.DOUBLE) double num1, @SqlType(StandardTypes.DOUBLE) double num2)
     {
         return Math.atan2(num1, num2);
+    }
+
+    @Description("Returns the observed significance level, or p-value, associated with a Binomial test")
+    @ScalarFunction
+    @SqlType(StandardTypes.DOUBLE)
+    public static double binomialTest(
+            @SqlType(StandardTypes.INTEGER) long numberOfTrials,
+            @SqlType(StandardTypes.INTEGER) long numberOfSuccesses,
+            @SqlType(StandardTypes.DOUBLE) double probability,
+            @SqlType(StandardTypes.VARCHAR) Slice alternativeHypothesis)
+    {
+        String alternativeHypothesisString = alternativeHypothesis.toStringUtf8();
+        checkCondition(numberOfTrials > 0, INVALID_FUNCTION_ARGUMENT, "numberOfTrials must be greater than 0");
+        checkCondition(numberOfSuccesses > 0, INVALID_FUNCTION_ARGUMENT, "numberOfSuccesses must be greater than 0");
+        checkCondition(numberOfSuccesses <= numberOfTrials, INVALID_FUNCTION_ARGUMENT, "numberOfSuccesses must be at most numberOfTrials");
+        checkCondition(probability >= 0 && probability <= 1, INVALID_FUNCTION_ARGUMENT, "probability must be in the interval [0, 1]");
+        checkCondition(
+                alternativeHypothesisString.equals("LESS_THAN") | alternativeHypothesisString.equals("TWO_SIDED") | alternativeHypothesisString.equals("GREATER_THAN"),
+                INVALID_FUNCTION_ARGUMENT,
+                "alternativeHypothesis must be one of {\"LESS_THAN\", \"TWO_SIDED\", \"GREATER_THAN\"}");
+
+        AlternativeHypothesis altHypothesis = AlternativeHypothesis.GREATER_THAN;
+        if (alternativeHypothesisString.equals("LESS_THAN")) {
+            altHypothesis = AlternativeHypothesis.LESS_THAN;
+        }
+        if (alternativeHypothesisString.equals("TWO_SIDED")) {
+            altHypothesis = AlternativeHypothesis.TWO_SIDED;
+        }
+
+        BinomialTest test = new BinomialTest();
+        return test.binomialTest((int) numberOfTrials, (int) numberOfSuccesses, probability, altHypothesis);
+    }
+
+    @Description("Returns whether the null hypothesis can be rejected with the given confidence level.")
+    @ScalarFunction
+    @SqlType(StandardTypes.BOOLEAN)
+    public static boolean binomialTest(
+            @SqlType(StandardTypes.INTEGER) long numberOfTrials,
+            @SqlType(StandardTypes.INTEGER) long numberOfSuccesses,
+            @SqlType(StandardTypes.DOUBLE) double probability,
+            @SqlType(StandardTypes.VARCHAR) Slice alternativeHypothesis,
+            @SqlType(StandardTypes.DOUBLE) double alpha)
+    {
+        String alternativeHypothesisString = alternativeHypothesis.toStringUtf8();
+        checkCondition(numberOfTrials > 0, INVALID_FUNCTION_ARGUMENT, "numberOfTrials must be > 0");
+        checkCondition(numberOfSuccesses > 0, INVALID_FUNCTION_ARGUMENT, "numberOfSuccesses must be > 0");
+        checkCondition(numberOfSuccesses <= numberOfTrials, INVALID_FUNCTION_ARGUMENT, "numberOfSuccesses must be at most numberOfTrials");
+        checkCondition(probability >= 0 && probability <= 1, INVALID_FUNCTION_ARGUMENT, "probability must be in the interval [0, 1]");
+        checkCondition(alpha >= 0 && alpha <= 1, INVALID_FUNCTION_ARGUMENT, "alpha must be in the interval [0, 1]");
+        checkCondition(
+                alternativeHypothesisString.equals("LESS_THAN") | alternativeHypothesisString.equals("TWO_SIDED") | alternativeHypothesisString.equals("GREATER_THAN"),
+                INVALID_FUNCTION_ARGUMENT,
+                "alternativeHypothesis must be one of {\"LESS_THAN\", \"TWO_SIDED\", \"GREATER_THAN\"}");
+
+        AlternativeHypothesis altHypothesis = AlternativeHypothesis.GREATER_THAN;
+        if (alternativeHypothesisString.equals("LESS_THAN")) {
+            altHypothesis = AlternativeHypothesis.LESS_THAN;
+        }
+        if (alternativeHypothesisString.equals("TWO_SIDED")) {
+            altHypothesis = AlternativeHypothesis.TWO_SIDED;
+        }
+
+        BinomialTest test = new BinomialTest();
+        return test.binomialTest((int) numberOfTrials, (int) numberOfSuccesses, probability, altHypothesis, alpha);
     }
 
     @Description("cube root")

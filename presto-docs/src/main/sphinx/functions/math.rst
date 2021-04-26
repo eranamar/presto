@@ -22,6 +22,22 @@ Mathematical Functions
 
     Returns the absolute value of ``x``.
 
+.. function:: binomial_test(numTrials, numberOfSuccesses, probability, alternativeHypothesis) -> double
+
+    Returns the observed significance level, or p-value, associated with a Binomial test.
+    The probability must be real value in [0, 1], and the alternativeHypothesis must be a string which is
+    exactly one of the following three options (case sensitive): "LESS_THAN", "GREATER_THAN", "TWO_SIDED"
+    The numTrials and numberOfSuccesses must be positive integers and have numberOfSuccesses <= numTrials.
+
+.. function:: binomial_test(numTrials, numberOfSuccesses, probability, alternativeHypothesis, alpha) -> boolean
+
+    Returns whether the null hypothesis can be rejected with the given confidence level, i.e. correctly reject
+    with probability >= (1-alpha).
+    The probability must be real value in [0, 1], and the alternativeHypothesis must be a string which is
+    exactly one of the following three options (case sensitive): "LESS_THAN", "GREATER_THAN", "TWO_SIDED"
+    The numTrials and numberOfSuccesses must be positive integers and have numberOfSuccesses <= numTrials.
+    Alpha must be a real value within [0, 1].
+
 .. function:: cbrt(x) -> double
 
     Returns the cube root of ``x``.
